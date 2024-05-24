@@ -1,4 +1,4 @@
-module github.com/jvanrhyn/ghprofile
+module github.com/jvanrhyn/github-contributions-tui
 
 go 1.22.3
 

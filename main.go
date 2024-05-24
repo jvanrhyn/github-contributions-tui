@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/joho/godotenv"
-
 	"github.com/charmbracelet/bubbles/textinput"
 	bubbletea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/joho/godotenv"
 )
 
 // model represents the state of the application.
@@ -113,34 +113,41 @@ func (m model) View() string {
 		return fmt.Sprintf("Error: %v\n", m.err)
 	}
 
+	// Define styles
+	darkGrey := lipgloss.NewStyle().Foreground(lipgloss.Color("#555555"))
+	lightGrey := lipgloss.NewStyle().Foreground(lipgloss.Color("#AAAAAA"))
+	contributionColor := lipgloss.NewStyle().Foreground(lipgloss.Color("#5AABE8"))
+
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(
 		"Github Contributuions\n\n%s\n\n%s",
 		m.username.View(),
 		"(ctrl+c to escape)\n\n",
-	) + "\n\n")
-	b.WriteString(fmt.Sprintf("Contributions: %s\n", m.submittedName))
+	))
+	b.WriteString("Contributions for : " + contributionColor.Render(fmt.Sprintf("%s\n\n", m.submittedName)) + "\n")
+
 	for day := 0; day < 32; day++ {
 		if day == 0 {
-			fmt.Fprintf(&b, "[      ] ")
+			b.WriteString(darkGrey.Render("[      ] "))
 		} else {
-			fmt.Fprintf(&b, "[%2d] ", day)
+			b.WriteString(lightGrey.Render(fmt.Sprintf("[%2d] ", day)))
 		}
 	}
 	b.WriteString("\n")
 
 	for month := 0; month < 13; month++ {
 		for day := 0; day < 32; day++ {
-
 			if day > 0 {
 				if m.contributions[month][day] != 0 {
-					fmt.Fprintf(&b, "[%2d] ", m.contributions[month][day])
+					b.WriteString(darkGrey.Render("[") + contributionColor.Render(
+						fmt.Sprintf("%2d", m.contributions[month][day])) + darkGrey.Render("] "))
 				} else {
-					fmt.Fprintf(&b, "[  ] ")
+					b.WriteString(darkGrey.Render("[ ✗] "))
 				}
 			} else {
 				if m.contributions[month][day] != 0 {
-					fmt.Fprintf(&b, "[%6d] ", m.contributions[month][day])
+					b.WriteString("[" + lightGrey.Render(
+						fmt.Sprintf("%6d", m.contributions[month][day])) + "] ")
 				} else {
 					fmt.Fprintf(&b, "[      ] ")
 				}

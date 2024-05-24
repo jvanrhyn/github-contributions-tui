@@ -58,7 +58,6 @@ func main() {
 }
 
 // initialModel returns the initial state of the model.
-// initialModel returns the initial state of the model.
 func initialModel() model {
 	ti := textinput.New()
 	ti.Placeholder = "Enter GitHub username"

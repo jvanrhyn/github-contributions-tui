@@ -18,7 +18,7 @@ This project is a terminal user interface (TUI) application built with the Bubbl
 1. Clone the repository:
 
    ```sh
-   git clone https://github.com/yourusername/github-contributions-tui.git
+   git clone https://github.com/jvanrhyn/github-contributions-tui.git
    cd github-contributions-tui
    ```
 
@@ -46,7 +46,7 @@ This project is a terminal user interface (TUI) application built with the Bubbl
 
 3. The application will fetch and display the contribution data for the specified user.
 
-4. To quit the application, press `Ctrl+C` or `q`.
+4. To quit the application, press `Ctrl+C` or `esc`.
 
 ## Project Structure
 

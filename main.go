@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -18,7 +19,7 @@ import (
 
 // model represents the state of the application.
 type model struct {
-	contributions [12][31]int     // Contributions data fetched from GitHub
+	contributions [13][32]int     // Contributions data fetched from GitHub
 	username      textinput.Model // GitHub username input by the user
 	submittedName string          // GitHub username input by the user
 	err           error           // Error encountered during data fetching
@@ -26,7 +27,7 @@ type model struct {
 
 // fetchMsg is a message containing the fetched contributions data or an error.
 type fetchMsg struct {
-	contributions [12][31]int // Contributions data fetched from GitHub
+	contributions [13][32]int // Contributions data fetched from GitHub
 	err           error       // Error encountered during data fetching
 }
 
@@ -119,12 +120,30 @@ func (m model) View() string {
 		"(ctrl+c to escape)\n\n",
 	) + "\n\n")
 	b.WriteString(fmt.Sprintf("Contributions: %s\n", m.submittedName))
-	for month := 0; month < 12; month++ {
-		for day := 0; day < 31; day++ {
-			if m.contributions[month][day] != 0 {
-				fmt.Fprintf(&b, "[%2d] ", m.contributions[month][day])
+	for day := 0; day < 32; day++ {
+		if day == 0 {
+			fmt.Fprintf(&b, "[      ] ")
+		} else {
+			fmt.Fprintf(&b, "[%2d] ", day)
+		}
+	}
+	b.WriteString("\n")
+
+	for month := 0; month < 13; month++ {
+		for day := 0; day < 32; day++ {
+
+			if day > 0 {
+				if m.contributions[month][day] != 0 {
+					fmt.Fprintf(&b, "[%2d] ", m.contributions[month][day])
+				} else {
+					fmt.Fprintf(&b, "[  ] ")
+				}
 			} else {
-				fmt.Fprintf(&b, "[  ] ")
+				if m.contributions[month][day] != 0 {
+					fmt.Fprintf(&b, "[%6d] ", m.contributions[month][day])
+				} else {
+					fmt.Fprintf(&b, "[      ] ")
+				}
 			}
 		}
 		b.WriteString("\n")
@@ -179,16 +198,25 @@ func fetchData(username string) bubbletea.Cmd {
 			return fetchMsg{err: err}
 		}
 
-		var contributions [12][31]int
+		var contributions [13][32]int
+		startDate := time.Now().AddDate(-1, 0, 0)
 		for _, week := range resp.Data.User.ContributionsCollection.ContributionCalendar.Weeks {
 			for _, day := range week.ContributionDays {
 				date, err := time.Parse("2006-01-02", day.Date)
 				if err != nil {
 					return fetchMsg{err: err}
 				}
-				month := date.Month() - 1
-				dayOfMonth := date.Day() - 1
-				contributions[month][dayOfMonth] = day.ContributionCount
+				yearMonth, err := strconv.Atoi(date.Format("200601"))
+				if err != nil {
+					return fetchMsg{err: err}
+				}
+				monthIndex := (int(date.Year())-startDate.Year())*12 + int(date.Month()) - int(startDate.Month())
+				if monthIndex < 0 || monthIndex >= 13 {
+					continue // Skip out-of-bounds months
+				}
+				dayOfMonth := date.Day()
+				contributions[monthIndex][dayOfMonth] = day.ContributionCount
+				contributions[monthIndex][0] = yearMonth
 			}
 		}
 

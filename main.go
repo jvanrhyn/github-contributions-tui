@@ -128,9 +128,9 @@ func (m model) View() string {
 
 	for day := 0; day < 32; day++ {
 		if day == 0 {
-			b.WriteString(darkGrey.Render("[      ] "))
+			b.WriteString(darkGrey.Render("|      | "))
 		} else {
-			b.WriteString(lightGrey.Render(fmt.Sprintf("[%2d] ", day)))
+			b.WriteString(lightGrey.Render(fmt.Sprintf("|%2d| ", day)))
 		}
 	}
 	b.WriteString("\n")
@@ -139,17 +139,17 @@ func (m model) View() string {
 		for day := 0; day < 32; day++ {
 			if day > 0 {
 				if m.contributions[month][day] != 0 {
-					b.WriteString(darkGrey.Render("[") + contributionColor.Render(
-						fmt.Sprintf("%2d", m.contributions[month][day])) + darkGrey.Render("] "))
+					b.WriteString(darkGrey.Render("|") + contributionColor.Render(
+						fmt.Sprintf("%2d", m.contributions[month][day])) + darkGrey.Render("| "))
 				} else {
-					b.WriteString(darkGrey.Render("[ ✗] "))
+					b.WriteString(darkGrey.Render("| ✗| "))
 				}
 			} else {
 				if m.contributions[month][day] != 0 {
-					b.WriteString("[" + lightGrey.Render(
-						fmt.Sprintf("%6d", m.contributions[month][day])) + "] ")
+					b.WriteString("|" + lightGrey.Render(
+						fmt.Sprintf("%6d", m.contributions[month][day])) + "| ")
 				} else {
-					fmt.Fprintf(&b, "[      ] ")
+					fmt.Fprintf(&b, "|      | ")
 				}
 			}
 		}

@@ -158,34 +158,49 @@ func (m model) View() string {
 }
 
 // fetchData fetches the contributions data for the given GitHub username.
+// It returns a Bubble Tea command that, when executed, sends a GraphQL request
+// to the GitHub API to retrieve the user's contributions over the past year.
+//
+// Parameters:
+// - username: The GitHub username for which to fetch contributions data.
+//
+// Returns:
+//   - A Bubble Tea command that fetches the contributions data and returns a fetchMsg
+//     containing the contributions data or an error.
 func fetchData(username string) bubbletea.Cmd {
 	return func() bubbletea.Msg {
+		// Define the date range for the contributions data (past year).
 		currentDate := time.Now().Format(dateLayout)
 		fromDate := time.Now().AddDate(-1, 0, 0).Format(dateLayout)
 
+		// Construct the GraphQL query to fetch contributions data.
 		query := fmt.Sprintf(
 			`{ "query": "query { user(login: \"%s\") { contributionsCollection(from: \"%sT00:00:00Z\", to: \"%sT23:59:59Z\") { contributionCalendar { weeks { contributionDays { date, contributionCount } } } } } }" }`,
 			username, fromDate, currentDate,
 		)
 		payload := strings.NewReader(query)
 
+		// Create a new HTTP POST request to the GitHub API.
 		req, err := http.NewRequest("POST", gitHubAPI, payload)
 		if err != nil {
 			return fetchMsg{err: err}
 		}
 		req.Header.Add("Authorization", "bearer "+githubToken)
 
+		// Send the request and handle the response.
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return fetchMsg{err: err}
 		}
 		defer res.Body.Close()
 
+		// Read the response body.
 		body, err := io.ReadAll(res.Body)
 		if err != nil {
 			return fetchMsg{err: err}
 		}
 
+		// Define the structure to unmarshal the JSON response.
 		var resp struct {
 			Data struct {
 				User struct {
@@ -202,14 +217,17 @@ func fetchData(username string) bubbletea.Cmd {
 				}
 			}
 		}
+		// Unmarshal the JSON response into the defined structure.
 		err = json.Unmarshal(body, &resp)
 		if err != nil {
 			return fetchMsg{err: err}
 		}
 
+		// Initialize the contributions array.
 		var contributions [numMonths][numDays]int
 		startDate := time.Now().AddDate(-1, 0, 0)
 
+		// Populate the contributions array with the fetched data.
 		for _, week := range resp.Data.User.ContributionsCollection.ContributionCalendar.Weeks {
 			for _, day := range week.ContributionDays {
 				date, err := time.Parse(dateLayout, day.Date)
@@ -229,6 +247,7 @@ func fetchData(username string) bubbletea.Cmd {
 				contributions[monthIndex][0] = yearMonth
 			}
 		}
+		// Return the contributions data in a fetchMsg.
 		return fetchMsg{contributions: contributions}
 	}
 }

@@ -106,7 +106,16 @@ func (m model) Update(msg bubbletea.Msg) (bubbletea.Model, bubbletea.Cmd) {
 	return m, cmd
 }
 
-// View returns a string representation of the model's state.
+// View returns a string representation of the model's state, including the
+// GitHub contributions data and any error messages.
+//
+// This method constructs a visual representation of the contributions data
+// using the lipgloss package for styling. It displays the contributions in a
+// tabular format, with months as rows and days as columns.
+//
+// Returns:
+//   - A string representation of the model's state, including the contributions
+//     data and any error messages.
 func (m model) View() string {
 	if m.err != nil {
 		return fmt.Sprintf("Error: %v\n", m.err)
